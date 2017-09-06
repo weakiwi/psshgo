@@ -153,8 +153,9 @@ func pssh(c *cli.Context) {
         }
         sshexec(&myconfig, command)
     }
-    return
+ //   return
 }
+
 
 func sshexec(sc *sshconfig, command string) {
     pkey := os.Getenv("PKEY")
@@ -178,7 +179,7 @@ func sshexec(sc *sshconfig, command string) {
 		fmt.Printf(stderr)
 	}
 	fmt.Printf(stdout)
-    return
+    //return
 
 }
 
@@ -213,6 +214,11 @@ func scpexec(sc *sshconfig, srcfile string, destfile string) {
             fmt.Printf(stderr)
     }
     fmt.Printf(stdout)
+    stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
+	if err != nil {
+		fmt.Printf(stderr)
+	}
+	fmt.Printf(stdout)
     return
 }
 type sshconfig struct {
