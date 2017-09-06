@@ -10,7 +10,7 @@ import (
 		"github.com/scottkiss/gosshtool"
         "io/ioutil"
         "log"
-        //"runtime"
+        "sync"
 )
 
 func main() {
@@ -32,6 +32,7 @@ func main() {
 const CLR_R = "\x1b[31;1m"
 const CLR_N = "\x1b[0m"
 var (
+    waitgroup sync.WaitGroup
 	sshCmd = cli.Command{
 		Name:   "ssh",
 		Usage:  "-hf hostfile -c command",
@@ -76,20 +77,21 @@ func pscp(c *cli.Context) {
     srcfile := mustGetStringVar(c, "s")
     destfile := mustGetStringVar(c, "d")
     //var t *testing.T
-	var myconfig sshconfig
     fi, err := os.Open(hostfile)
     if err != nil {
         fmt.Printf("Error: %s\n", err)
         return
     }
 
-    done := make(chan string)
+    counter := ComputeLine(hostfile)
+    done := make(chan string, counter)
     br := bufio.NewReader(fi)
     for {
         line, err := br.ReadString('\n')
         if err != nil || err == io.EOF {
             break
         }
+	    var myconfig sshconfig
         if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
                 s := strings.Split(string(line), "@")
                 myconfig.user = s[0]
@@ -111,8 +113,16 @@ func pscp(c *cli.Context) {
                 myconfig.address = strings.Replace(string(line), "\n", "", -1)
                 myconfig.port = "22"
         }
-        scpexec(&myconfig, srcfile, destfile, done)
+        waitgroup.Add(1)
+        go scpexec(&myconfig, srcfile, destfile, done)
     }
+    waitgroup.Wait()
+	for v := range done {
+	    fmt.Println(v)
+	    if len(done) <= 0 { // 如果现有数据量为0，跳出循环
+            close(done)
+	    }
+	}
     return
 }
 func ComputeLine(path string)(num int){
@@ -136,9 +146,7 @@ func pssh(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     command := mustGetStringVar(c, "c")
 
-    //runtime.GOMAXPROCS(2)
     //var t *testing.T
-	var myconfig sshconfig
     fi, err := os.Open(hostfile)
     if err != nil {
         fmt.Printf("Error: %s\n", err)
@@ -146,9 +154,10 @@ func pssh(c *cli.Context) {
     }
     br := bufio.NewReader(fi)
     counter := ComputeLine(hostfile)
-    done := make(chan string,counter)
+    done := make(chan string, counter)
     for {
         line, err := br.ReadString('\n')
+	    var myconfig sshconfig
         if err != nil || err == io.EOF {
             break
         }
@@ -173,17 +182,17 @@ func pssh(c *cli.Context) {
                 myconfig.address = strings.Replace(string(line), "\n", "", -1)
                 myconfig.port = "22"
         }
+        waitgroup.Add(1)
         go sshexec(&myconfig, command, done)
     }
-	 for v := range done {
-	     fmt.Println(v)
-	 if len(done) <= 0 {
-	 break
-	 }
+    waitgroup.Wait()
+	for v := range done {
+	    fmt.Println(v)
+	    if len(done) <= 0 { // 如果现有数据量为0，跳出循环
+            close(done)
+	    }
 	}
-    return
 }
-
 
 func sshexec(sc *sshconfig, command string, done chan string) {
     pkey := os.Getenv("PKEY")
@@ -203,9 +212,11 @@ func sshexec(sc *sshconfig, command string, done chan string) {
     sshclient := gosshtool.NewSSHClient(config2)
     stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
+        waitgroup.Done()
 		done <- fmt.Sprintf(stderr)
         return
 	}
+    waitgroup.Done()
 	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N,stdout)
     return
 
@@ -228,7 +239,6 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
         Host:     sc.address,
 	}
     client := gosshtool.NewSSHClient(config2)
-    fmt.Printf("%s[%s]%s\n", CLR_R, sc.address, CLR_N)
     f, err := os.Open(srcfile)
     if err != nil {
             return
@@ -241,12 +251,13 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
     if err != nil {
             fmt.Printf(stderr)
     }
-    fmt.Printf(stdout)
     stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
+        waitgroup.Done()
 		done <- fmt.Sprintf(stderr)
 	}
-	done <- fmt.Sprintf(stdout)
+    waitgroup.Done()
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
     return
 }
 type sshconfig struct {
