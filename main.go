@@ -94,11 +94,15 @@ func pssh(c *cli.Context) {
 }
 
 func sshexec(sc *sshconfig, command string) {
-    key, err := ioutil.ReadFile("/root/.ssh/id_rsa")
+    pkey := os.Getenv("PKEY")
+    if pkey == "" {
+            pkey = "/root/.ssh/id_rsa"
+    }
+    key, err := ioutil.ReadFile(pkey)
     if err != nil {
         log.Fatalf("Unable to read private key: %v", err)
     }
-    pkey := string(key)
+    pkey = string(key)
 	config2 := &gosshtool.SSHClientConfig{
 		User:     sc.user,
 		Privatekey: pkey,
