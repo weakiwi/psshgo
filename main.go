@@ -21,6 +21,7 @@ func main() {
 	app.Email = "dengyi0215@gmail.com"
     app.Commands = []cli.Command{
             sshCmd,
+            scpCmd,
         }
 
     app.Run(os.Args)
@@ -40,6 +41,18 @@ var (
             commandfileFlag,
 		},
 	}
+	scpCmd = cli.Command{
+		Name:   "scp",
+		Usage:  "-hf hostfile -s srcfile -d destfile",
+		//Usage:  "psshgo -hf hostfile  <\"cmds\" | cmdsfile>",
+		Action: pscp,
+		Flags: []cli.Flag{
+			hostfileFlag,
+            sourcefileFlag,
+            destfileFlag,
+		},
+	}
+
 	hostfileFlag = cli.StringFlag{
 		Name:  "hf",
 		Usage: "host or file containing host names, one per line",
@@ -48,8 +61,58 @@ var (
 		Name:  "c",
 		Usage: "command",
 	}
+	sourcefileFlag = cli.StringFlag{
+		Name:  "s",
+		Usage: "source file",
+	}
+	destfileFlag = cli.StringFlag{
+		Name:  "d",
+		Usage: "destination file",
+	}
 )
+func pscp(c *cli.Context) {
+    hostfile := mustGetStringVar(c, "hf")
+    srcfile := mustGetStringVar(c, "s")
+    destfile := mustGetStringVar(c, "d")
+    //var t *testing.T
+	var myconfig sshconfig
+    fi, err := os.Open(hostfile)
+    if err != nil {
+        fmt.Printf("Error: %s\n", err)
+        return
+    }
 
+    br := bufio.NewReader(fi)
+    for {
+        line, err := br.ReadString('\n')
+        if err != nil || err == io.EOF {
+            break
+        }
+        if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
+                s := strings.Split(string(line), "@")
+                myconfig.user = s[0]
+                s1 := strings.Split(s[1], ":")
+                myconfig.address = s1[0]
+                myconfig.port = s1[1]
+        } else if strings.Contains(string(line), ":") == false  && strings.Contains(string(line), "@"){
+                s := strings.Split(string(line), "@")
+                myconfig.user = s[0]
+                myconfig.address = s[1]
+                myconfig.port = "22"
+        } else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":"){
+                myconfig.user = "root"
+                s := strings.Split(string(line), ":")
+                myconfig.address = s[0]
+                myconfig.port = s[1]
+        } else {
+                myconfig.user = "root"
+                myconfig.address = strings.Replace(string(line), "\n", "", -1)
+                myconfig.port = "22"
+        }
+        scpexec(&myconfig, srcfile, destfile)
+    }
+    return
+}
 func pssh(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     command := mustGetStringVar(c, "c")
@@ -118,12 +181,45 @@ func sshexec(sc *sshconfig, command string) {
     return
 
 }
+
+
+func scpexec(sc *sshconfig, srcfile string, destfile string) {
+    pkey := os.Getenv("PKEY")
+    if pkey == "" {
+            pkey = "/root/.ssh/id_rsa"
+    }
+    key, err := ioutil.ReadFile(pkey)
+    if err != nil {
+        log.Fatalf("Unable to read private key: %v", err)
+    }
+    pkey = string(key)
+	config2 := &gosshtool.SSHClientConfig{
+		User:     sc.user,
+		Privatekey: pkey,
+        Host:     sc.address,
+	}
+    client := gosshtool.NewSSHClient(config2)
+    fmt.Printf("%s[%s]%s\n", CLR_R, sc.address, CLR_N)
+    f, err := os.Open(srcfile)
+    if err != nil {
+            return
+    }
+    data, err := ioutil.ReadAll(f)
+    if err != nil {
+            return
+    }
+    stdout, stderr, err := client.TransferData(destfile, data)
+    if err != nil {
+            fmt.Printf(stderr)
+    }
+    fmt.Printf(stdout)
+    return
+}
 type sshconfig struct {
 	user string
 	address string
     port string
 }
-
 
 func mustGetStringVar(c *cli.Context, key string) string {
 	v := strings.TrimSpace(c.String(key))
