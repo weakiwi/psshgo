@@ -10,6 +10,7 @@ import (
 		"github.com/scottkiss/gosshtool"
         "io/ioutil"
         "log"
+        //"runtime"
 )
 
 func main() {
@@ -82,6 +83,7 @@ func pscp(c *cli.Context) {
         return
     }
 
+    done := make(chan string)
     br := bufio.NewReader(fi)
     for {
         line, err := br.ReadString('\n')
@@ -109,13 +111,32 @@ func pscp(c *cli.Context) {
                 myconfig.address = strings.Replace(string(line), "\n", "", -1)
                 myconfig.port = "22"
         }
-        scpexec(&myconfig, srcfile, destfile)
+        scpexec(&myconfig, srcfile, destfile, done)
+    }
+    return
+}
+func ComputeLine(path string)(num int){
+    f,err := os.Open(path)
+    if nil != err{
+        log.Println(err)
+        return
+    }
+    defer f.Close()
+    r := bufio.NewReader(f)
+    for{
+        _,err := r.ReadString('\n')
+        if io.EOF == err || nil != err{
+            break
+        }
+        num += 1
     }
     return
 }
 func pssh(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     command := mustGetStringVar(c, "c")
+
+    //runtime.GOMAXPROCS(2)
     //var t *testing.T
 	var myconfig sshconfig
     fi, err := os.Open(hostfile)
@@ -123,8 +144,9 @@ func pssh(c *cli.Context) {
         fmt.Printf("Error: %s\n", err)
         return
     }
-
     br := bufio.NewReader(fi)
+    counter := ComputeLine(hostfile)
+    done := make(chan string,counter)
     for {
         line, err := br.ReadString('\n')
         if err != nil || err == io.EOF {
@@ -151,13 +173,19 @@ func pssh(c *cli.Context) {
                 myconfig.address = strings.Replace(string(line), "\n", "", -1)
                 myconfig.port = "22"
         }
-        sshexec(&myconfig, command)
+        go sshexec(&myconfig, command, done)
     }
- //   return
+	 for v := range done {
+	     fmt.Println(v)
+	 if len(done) <= 0 {
+	 break
+	 }
+	}
+    return
 }
 
 
-func sshexec(sc *sshconfig, command string) {
+func sshexec(sc *sshconfig, command string, done chan string) {
     pkey := os.Getenv("PKEY")
     if pkey == "" {
             pkey = "/root/.ssh/id_rsa"
@@ -173,18 +201,18 @@ func sshexec(sc *sshconfig, command string) {
         Host:     sc.address,
 	}
     sshclient := gosshtool.NewSSHClient(config2)
-    fmt.Printf("%s[%s]%s\n", CLR_R, sc.address, CLR_N)
     stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
-		fmt.Printf(stderr)
+		done <- fmt.Sprintf(stderr)
+        return
 	}
-	fmt.Printf(stdout)
-    //return
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N,stdout)
+    return
 
 }
 
 
-func scpexec(sc *sshconfig, srcfile string, destfile string) {
+func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
     pkey := os.Getenv("PKEY")
     if pkey == "" {
             pkey = "/root/.ssh/id_rsa"
@@ -216,9 +244,9 @@ func scpexec(sc *sshconfig, srcfile string, destfile string) {
     fmt.Printf(stdout)
     stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
-		fmt.Printf(stderr)
+		done <- fmt.Sprintf(stderr)
 	}
-	fmt.Printf(stdout)
+	done <- fmt.Sprintf(stdout)
     return
 }
 type sshconfig struct {
