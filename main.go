@@ -11,6 +11,7 @@ import (
         "io/ioutil"
         "log"
         "sync"
+        "crypto/md5"
 )
 
 func main() {
@@ -72,6 +73,19 @@ var (
 		Usage: "destination file",
 	}
 )
+func md5File(srcfile string) {
+    file, err := os.Open(srcfile)
+    if err != nil {
+        panic(err)
+    }
+ 
+    h := md5.New()
+    _, err = io.Copy(h, file)
+    if err != nil {
+        return
+    }
+    fmt.Printf("%x\n", h.Sum(nil))
+}
 func pscp(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     srcfile := mustGetStringVar(c, "s")
@@ -116,6 +130,7 @@ func pscp(c *cli.Context) {
         waitgroup.Add(1)
         go scpexec(&myconfig, srcfile, destfile, done)
     }
+	md5File(srcfile)
     waitgroup.Wait()
 	for v := range done {
 	    fmt.Println(v)
