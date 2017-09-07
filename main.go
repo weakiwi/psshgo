@@ -84,7 +84,7 @@ func md5File(srcfile string) {
     if err != nil {
         return
     }
-    fmt.Printf("%x\n", h.Sum(nil))
+    fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
 func pscp(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
