@@ -147,11 +147,6 @@ func pscp(c *cli.Context) {
     srcfile := mustGetStringVar(c, "s")
     destfile := mustGetStringVar(c, "d")
     //var t *testing.T
-    fi, err := os.Open(hostfile)
-    if err != nil {
-        fmt.Printf("Error: %s\n", err)
-        return
-    }
     counter := ComputeLine(hostfile)
     done := make(chan string, counter)
     myconfigs, err := parseHostfile(hostfile)
