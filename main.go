@@ -152,37 +152,13 @@ func pscp(c *cli.Context) {
         fmt.Printf("Error: %s\n", err)
         return
     }
-
     counter := ComputeLine(hostfile)
     done := make(chan string, counter)
-    br := bufio.NewReader(fi)
-    for {
-        line, err := br.ReadString('\n')
-        if err != nil || err == io.EOF {
-            break
-        }
-	    var myconfig sshconfig
-        if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                s1 := strings.Split(s[1], ":")
-                myconfig.address = s1[0]
-                myconfig.port = s1[1]
-        } else if strings.Contains(string(line), ":") == false  && strings.Contains(string(line), "@"){
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                myconfig.address = s[1]
-                myconfig.port = "22"
-        } else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":"){
-                myconfig.user = "root"
-                s := strings.Split(string(line), ":")
-                myconfig.address = s[0]
-                myconfig.port = s[1]
-        } else {
-                myconfig.user = "root"
-                myconfig.address = strings.Replace(string(line), "\n", "", -1)
-                myconfig.port = "22"
-        }
+    myconfigs, err := parseHostfile(hostfile)
+    if err != nil {
+        log.Fatalf("pscp.parseHostfile err: %v", err)
+    }
+    for myconfig := range myconfigs{
         waitgroup.Add(1)
         go scpexec(&myconfig, srcfile, destfile, done)
     }
