@@ -101,14 +101,13 @@ func md5File(srcfile string) {
     }
     fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
-func parseHostfile(hostfile string) ([]sshconfig, err) {
+func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
     fi, err := os.Open(hostfile)
     if err != nil {
         fmt.Printf("parseHostfile.Open Error: %s\n", err)
         return nil, err
     }
     br := bufio.NewReader(fi)
-    var result_sshconfig []sshconfig
     for {
         line, err := br.ReadString('\n')
         if err != nil || err == io.EOF {
