@@ -101,7 +101,7 @@ func md5File(srcfile string) {
     }
     fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
-func parseHostfile(hostfile string) []sshconfig, err {
+func parseHostfile(hostfile string) ([]sshconfig, err) {
     fi, err := os.Open(hostfile)
     if err != nil {
         fmt.Printf("parseHostfile.Open Error: %s\n", err)
