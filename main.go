@@ -1,4 +1,4 @@
-package pssh
+package main
 
 import (
 	"bufio"
@@ -57,12 +57,11 @@ var (
 		},
 	}
 	iniCmd = cli.Command{
-		Name:  "ini",
-		Usage: "-hf hostfile -i inifile",
+		Name:  "pini",
+		Usage: "-i inifile",
 		//Usage:  "psshgo -hf hostfile  <\"cmds\" | cmdsfile>",
-		Action: ini,
+		Action: pini,
 		Flags: []cli.Flag{
-			hostfileFlag,
 			inifileFlag,
 		},
 	}
@@ -102,46 +101,38 @@ func md5File(srcfile string) {
 	}
 	fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
-func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
-	fi, err := os.Open(hostfile)
+
+func pini(c *cli.Context) {
+	inifile := mustGetStringVar(c, "i")
+	playbooks, err := parseini(inifile)
 	if err != nil {
-		fmt.Printf("parseHostfile.Open Error: %s\n", err)
-		return nil, err
+		log.Fatalf("pini error: %v", err)
+		os.Exit(1)
 	}
-	br := bufio.NewReader(fi)
-	for {
-		line, err := br.ReadString('\n')
-		if err != nil || err == io.EOF {
-			break
+	for i := range playbooks {
+        fmt.Println("#######start ", playbooks[i].name," ########")
+		if playbooks[i].playbook_type == "scp" {
+			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
+		} else if playbooks[i].playbook_type == "ssh" {
+			psshexec(playbooks[i].servers, playbooks[i].command)
 		}
-		var myconfig sshconfig
-		if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
-			s := strings.Split(string(line), "@")
-			myconfig.user = s[0]
-			s1 := strings.Split(s[1], ":")
-			myconfig.address = s1[0]
-			myconfig.port = s1[1]
-		} else if strings.Contains(string(line), ":") == false && strings.Contains(string(line), "@") {
-			s := strings.Split(string(line), "@")
-			myconfig.user = s[0]
-			myconfig.address = s[1]
-			myconfig.port = "22"
-		} else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":") {
-			myconfig.user = "root"
-			s := strings.Split(string(line), ":")
-			myconfig.address = s[0]
-			myconfig.port = s[1]
-		} else {
-			myconfig.user = "root"
-			myconfig.address = strings.Replace(string(line), "\n", "", -1)
-			myconfig.port = "22"
-		}
-		result_sshconfig = append(result_sshconfig, myconfig)
 	}
-	return result_sshconfig, nil
 }
-func ini(c *cli.Context) {
-	fmt.Println("hello this ini")
+func pscpexec(servers []sshconfig, srcfile string, destfile string) {
+	counter := len(servers)
+	done := make(chan string, counter)
+	for i := range servers {
+		waitgroup.Add(1)
+		go scpexec(&servers[i], srcfile, destfile, done)
+	}
+	md5File(srcfile)
+	waitgroup.Wait()
+	for v := range done {
+		fmt.Println(v)
+		if len(done) <= 0 {
+			close(done)
+		}
+	}
 }
 func pscp(c *cli.Context) {
 	hostfile := mustGetStringVar(c, "hf")
@@ -155,7 +146,7 @@ func pscp(c *cli.Context) {
 		log.Fatalf("pscp.parseHostfile err: %v", err)
 	}
 	for i := range myconfigs {
-		waitgroup.Add(1)
+        waitgroup.Add(1)
 		go scpexec(&myconfigs[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
@@ -185,6 +176,22 @@ func ComputeLine(path string) (num int) {
 	}
 	return
 }
+
+func psshexec(servers []sshconfig, command string) {
+	counter := len(servers)
+	done := make(chan string, counter)
+	for i := range servers {
+		waitgroup.Add(1)
+		go sshexec(&servers[i], command, done)
+	}
+	waitgroup.Wait()
+	for v := range done {
+		fmt.Println(v)
+		if len(done) <= 0 {
+			close(done)
+		}
+	}
+}
 func pssh(c *cli.Context) {
 	hostfile := mustGetStringVar(c, "hf")
 	command := mustGetStringVar(c, "c")
@@ -195,9 +202,11 @@ func pssh(c *cli.Context) {
 	myconfigs, err := parseHostfile(hostfile)
 	if err != nil {
 		log.Fatalf("sshexec.parseHostfile err: %v", err)
+		os.Exit(1)
 	}
+	fmt.Println("pssh myconfigs are : %v", myconfigs)
 	for i := range myconfigs {
-		waitgroup.Add(1)
+        waitgroup.Add(1)
 		go sshexec(&myconfigs[i], command, done)
 	}
 	waitgroup.Wait()
@@ -224,10 +233,11 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 		Privatekey: pkey,
 		Host:       sc.address,
 	}
-	sshclient := gosshtool.NewSSHClient(config2)
-	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
+    sshclient := gosshtool.NewSSHClient(config2)
+    stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
-		waitgroup.Done()
+        waitgroup.Done()
+        fmt.Println("sshexec error is : %v", err)
 		done <- fmt.Sprintf(stderr)
 		return
 	}
@@ -273,12 +283,6 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	waitgroup.Done()
 	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
 	return
-}
-
-type sshconfig struct {
-	user    string
-	address string
-	port    string
 }
 
 func mustGetStringVar(c *cli.Context, key string) string {
