@@ -140,6 +140,9 @@ func parseHostfile(hostfile string) []sshconfig, err {
    }
    return result_sshconfig, nil
 }
+func ini(c *cli.Context) {
+    fmt.Println("hello this ini")
+}
 func pscp(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     srcfile := mustGetStringVar(c, "s")
