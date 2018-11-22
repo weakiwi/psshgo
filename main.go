@@ -147,44 +147,15 @@ func pscp(c *cli.Context) {
     srcfile := mustGetStringVar(c, "s")
     destfile := mustGetStringVar(c, "d")
     //var t *testing.T
-    fi, err := os.Open(hostfile)
-    if err != nil {
-        fmt.Printf("Error: %s\n", err)
-        return
-    }
-
     counter := ComputeLine(hostfile)
     done := make(chan string, counter)
-    br := bufio.NewReader(fi)
-    for {
-        line, err := br.ReadString('\n')
-        if err != nil || err == io.EOF {
-            break
-        }
-	    var myconfig sshconfig
-        if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                s1 := strings.Split(s[1], ":")
-                myconfig.address = s1[0]
-                myconfig.port = s1[1]
-        } else if strings.Contains(string(line), ":") == false  && strings.Contains(string(line), "@"){
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                myconfig.address = s[1]
-                myconfig.port = "22"
-        } else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":"){
-                myconfig.user = "root"
-                s := strings.Split(string(line), ":")
-                myconfig.address = s[0]
-                myconfig.port = s[1]
-        } else {
-                myconfig.user = "root"
-                myconfig.address = strings.Replace(string(line), "\n", "", -1)
-                myconfig.port = "22"
-        }
+    myconfigs, err := parseHostfile(hostfile)
+    if err != nil {
+        log.Fatalf("pscp.parseHostfile err: %v", err)
+    }
+    for i := range myconfigs{
         waitgroup.Add(1)
-        go scpexec(&myconfig, srcfile, destfile, done)
+        go scpexec(&myconfigs[i], srcfile, destfile, done)
     }
 	md5File(srcfile)
     waitgroup.Wait()
@@ -218,43 +189,15 @@ func pssh(c *cli.Context) {
     command := mustGetStringVar(c, "c")
 
     //var t *testing.T
-    fi, err := os.Open(hostfile)
-    if err != nil {
-        fmt.Printf("Error: %s\n", err)
-        return
-    }
-    br := bufio.NewReader(fi)
     counter := ComputeLine(hostfile)
     done := make(chan string, counter)
-    for {
-        line, err := br.ReadString('\n')
-	    var myconfig sshconfig
-        if err != nil || err == io.EOF {
-            break
-        }
-        if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                s1 := strings.Split(s[1], ":")
-                myconfig.address = s1[0]
-                myconfig.port = s1[1]
-        } else if strings.Contains(string(line), ":") == false  && strings.Contains(string(line), "@"){
-                s := strings.Split(string(line), "@")
-                myconfig.user = s[0]
-                myconfig.address = s[1]
-                myconfig.port = "22"
-        } else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":"){
-                myconfig.user = "root"
-                s := strings.Split(string(line), ":")
-                myconfig.address = s[0]
-                myconfig.port = s[1]
-        } else {
-                myconfig.user = "root"
-                myconfig.address = strings.Replace(string(line), "\n", "", -1)
-                myconfig.port = "22"
-        }
-        waitgroup.Add(1)
-        go sshexec(&myconfig, command, done)
+    myconfigs, err := parseHostfile(hostfile)
+    if err != nil {
+        log.Fatalf("sshexec.parseHostfile err: %v", err)
+    }
+    for i := range myconfigs {
+            waitgroup.Add(1)
+        go sshexec(&myconfigs[i], command, done)
     }
     waitgroup.Wait()
 	for v := range done {
