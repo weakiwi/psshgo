@@ -101,6 +101,45 @@ func md5File(srcfile string) {
     }
     fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
+func parseHostfile(hostfile string) []sshconfig, err {
+    fi, err := os.Open(hostfile)
+    if err != nil {
+        fmt.Printf("parseHostfile.Open Error: %s\n", err)
+        return nil, err
+    }
+    br := bufio.NewReader(fi)
+    var result_sshconfig []sshconfig
+    for {
+        line, err := br.ReadString('\n')
+        if err != nil || err == io.EOF {
+            break
+        }
+ 	    var myconfig sshconfig
+        if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
+                s := strings.Split(string(line), "@")
+                myconfig.user = s[0]
+                s1 := strings.Split(s[1], ":")
+                myconfig.address = s1[0]
+                myconfig.port = s1[1]
+        } else if strings.Contains(string(line), ":") == false  && strings.Contains(string(line), "@"){
+                s := strings.Split(string(line), "@")
+                myconfig.user = s[0]
+                myconfig.address = s[1]
+                myconfig.port = "22"
+        } else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":"){
+                myconfig.user = "root"
+                s := strings.Split(string(line), ":")
+                myconfig.address = s[0]
+                myconfig.port = s[1]
+        } else {
+                myconfig.user = "root"
+                myconfig.address = strings.Replace(string(line), "\n", "", -1)
+                myconfig.port = "22"
+        }
+        result_sshconfig = appen(result_sshconfig, myconfig)
+   }
+   return result_sshconfig, nil
+}
 func pscp(c *cli.Context) {
     hostfile := mustGetStringVar(c, "hf")
     srcfile := mustGetStringVar(c, "s")
