@@ -1,4 +1,4 @@
-package main
+package pssh
 
 import (
         "github.com/urfave/cli"
@@ -24,6 +24,7 @@ func main() {
     app.Commands = []cli.Command{
             sshCmd,
             scpCmd,
+            iniCmd,
         }
 
     app.Run(os.Args)
@@ -55,6 +56,16 @@ var (
             destfileFlag,
 		},
 	}
+	iniCmd = cli.Command{
+		Name:   "ini",
+		Usage:  "-hf hostfile -i inifile",
+		//Usage:  "psshgo -hf hostfile  <\"cmds\" | cmdsfile>",
+		Action: ini,
+		Flags: []cli.Flag{
+			hostfileFlag,
+            inifileFlag,
+		},
+	}
 
 	hostfileFlag = cli.StringFlag{
 		Name:  "hf",
@@ -71,6 +82,10 @@ var (
 	destfileFlag = cli.StringFlag{
 		Name:  "d",
 		Usage: "destination file",
+	}
+	inifileFlag = cli.StringFlag{
+		Name:  "i",
+		Usage: "ini file",
 	}
 )
 func md5File(srcfile string) {
