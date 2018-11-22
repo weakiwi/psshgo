@@ -158,9 +158,9 @@ func pscp(c *cli.Context) {
     if err != nil {
         log.Fatalf("pscp.parseHostfile err: %v", err)
     }
-    for myconfig := range myconfigs{
+    for i := range myconfigs{
         waitgroup.Add(1)
-        go scpexec(&myconfig, srcfile, destfile, done)
+        go scpexec(&myconfigs[i], srcfile, destfile, done)
     }
 	md5File(srcfile)
     waitgroup.Wait()
