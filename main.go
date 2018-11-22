@@ -192,6 +192,9 @@ func pssh(c *cli.Context) {
     counter := ComputeLine(hostfile)
     done := make(chan string, counter)
     myconfigs, err := parseHostfile(hostfile)
+    if err != nil {
+        log.Fatalf("sshexec.parseHostfile err: %v", err)
+    }
     for i := range myconfigs {
             waitgroup.Add(1)
         go sshexec(&myconfigs[i], command, done)
