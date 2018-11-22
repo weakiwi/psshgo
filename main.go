@@ -135,7 +135,7 @@ func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
                 myconfig.address = strings.Replace(string(line), "\n", "", -1)
                 myconfig.port = "22"
         }
-        result_sshconfig = appen(result_sshconfig, myconfig)
+        result_sshconfig = append(result_sshconfig, myconfig)
    }
    return result_sshconfig, nil
 }
