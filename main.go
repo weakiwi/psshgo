@@ -26,13 +26,6 @@ func main() {
 		scpCmd,
 		iniCmd,
 	}
-	pssh_logfile := os.Getenv("P_LOGFILE")
-	if pssh_logfile != "" {
-		f, _ := os.OpenFile(string(pssh_logfile), os.O_WRONLY|os.O_CREATE|os.O_SYNC|os.O_APPEND, 0755)
-		fmt.Println("main pssh_logfile: ", f)
-		os.Stdout = f
-		os.Stderr = f
-	}
 
 	app.Run(os.Args)
 }
@@ -211,7 +204,6 @@ func pssh(c *cli.Context) {
 		log.Fatalf("sshexec.parseHostfile err: %v", err)
 		os.Exit(1)
 	}
-	log.Println("pssh myconfigs are : %v", myconfigs)
 	for i := range myconfigs {
 		waitgroup.Add(1)
 		go sshexec(&myconfigs[i], command, done)
