@@ -75,7 +75,7 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 		myconfig.address = strings.Replace(string(line), "\n", "", -1)
 		if myconfig.address == "" {
 			log.Fatalf("stringToSshconfig error: line is blank!")
-			return myconfig, log.Panicln("stringToSshconfig error: line is blank!")
+			return myconfig, fmt.Errorf("stringToSshconfig error: line is blank!")
 		}
 		myconfig.port = "22"
 	}
