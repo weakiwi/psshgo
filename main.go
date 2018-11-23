@@ -238,11 +238,11 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	if err != nil {
 		waitgroup.Done()
 		log.Println("sshexec error is : %v", err)
-		done <- fmt.Sprintf(stderr)
+		done <- log.Printf(stderr)
 		return
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- log.Printf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
 	return
 
 }
@@ -278,10 +278,10 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
-		done <- fmt.Sprintf(stderr)
+		done <- log.Printf(stderr)
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- log.Printf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
 	return
 }
 
