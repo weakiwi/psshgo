@@ -110,7 +110,7 @@ func pini(c *cli.Context) {
 		os.Exit(1)
 	}
 	for i := range playbooks {
-        log.Println("#######start ", playbooks[i].name," ########")
+		log.Println("#######start ", playbooks[i].name, " ########")
 		if playbooks[i].playbook_type == "scp" {
 			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
 		} else if playbooks[i].playbook_type == "ssh" {
@@ -146,7 +146,7 @@ func pscp(c *cli.Context) {
 		log.Fatalf("pscp.parseHostfile err: %v", err)
 	}
 	for i := range myconfigs {
-        waitgroup.Add(1)
+		waitgroup.Add(1)
 		go scpexec(&myconfigs[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
@@ -206,7 +206,7 @@ func pssh(c *cli.Context) {
 	}
 	log.Println("pssh myconfigs are : %v", myconfigs)
 	for i := range myconfigs {
-        waitgroup.Add(1)
+		waitgroup.Add(1)
 		go sshexec(&myconfigs[i], command, done)
 	}
 	waitgroup.Wait()
@@ -233,11 +233,11 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 		Privatekey: pkey,
 		Host:       sc.address,
 	}
-    sshclient := gosshtool.NewSSHClient(config2)
-    stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
+	sshclient := gosshtool.NewSSHClient(config2)
+	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
-        waitgroup.Done()
-        log.Println("sshexec error is : %v", err)
+		waitgroup.Done()
+		log.Println("sshexec error is : %v", err)
 		done <- fmt.Sprintf(stderr)
 		return
 	}

@@ -29,7 +29,7 @@ func parseini(path string) (playbooks []playbook, err error) {
 		sshconfigs = append(sshconfigs, k)
 	}
 	for i := range secs {
-        my_playbook.name = secs[i].Name()
+		my_playbook.name = secs[i].Name()
 		// if operate type is ssh
 		if secs[i].HasKey("command") == true {
 			my_playbook.command = secs[i].Key("command").String()
@@ -112,7 +112,7 @@ type sshconfig struct {
 }
 
 type playbook struct {
-    name          string
+	name          string
 	playbook_type string
 	src           string
 	dst           string
