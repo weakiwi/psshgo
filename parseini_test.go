@@ -67,6 +67,7 @@ func Test_ParseHostfile(t *testing.T) {
 	if reflect.DeepEqual(sshconfigs[0], my_sshconfig) {
 		t.Log("parseHostfile pass")
 	} else {
-		t.Error("parseHostfile failed")
+		t.Error("parseHostfile failed", sshconfigs[0])
+		t.Error("parseHostfile failed", my_sshconfig)
 	}
 }
