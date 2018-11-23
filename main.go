@@ -99,7 +99,7 @@ func md5File(srcfile string) {
 	if err != nil {
 		return
 	}
-	fmt.Printf("%x  %s\n", h.Sum(nil), srcfile)
+	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
 }
 
 func pini(c *cli.Context) {
@@ -110,7 +110,7 @@ func pini(c *cli.Context) {
 		os.Exit(1)
 	}
 	for i := range playbooks {
-        fmt.Println("#######start ", playbooks[i].name," ########")
+        log.Println("#######start ", playbooks[i].name," ########")
 		if playbooks[i].playbook_type == "scp" {
 			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
 		} else if playbooks[i].playbook_type == "ssh" {
@@ -128,7 +128,7 @@ func pscpexec(servers []sshconfig, srcfile string, destfile string) {
 	md5File(srcfile)
 	waitgroup.Wait()
 	for v := range done {
-		fmt.Println(v)
+		log.Println(v)
 		if len(done) <= 0 {
 			close(done)
 		}
@@ -152,7 +152,7 @@ func pscp(c *cli.Context) {
 	md5File(srcfile)
 	waitgroup.Wait()
 	for v := range done {
-		fmt.Println(v)
+		log.Println(v)
 		if len(done) <= 0 { // 如果现有数据量为0，跳出循环
 			close(done)
 		}
@@ -186,7 +186,7 @@ func psshexec(servers []sshconfig, command string) {
 	}
 	waitgroup.Wait()
 	for v := range done {
-		fmt.Println(v)
+		log.Println(v)
 		if len(done) <= 0 {
 			close(done)
 		}
@@ -204,14 +204,14 @@ func pssh(c *cli.Context) {
 		log.Fatalf("sshexec.parseHostfile err: %v", err)
 		os.Exit(1)
 	}
-	fmt.Println("pssh myconfigs are : %v", myconfigs)
+	log.Println("pssh myconfigs are : %v", myconfigs)
 	for i := range myconfigs {
         waitgroup.Add(1)
 		go sshexec(&myconfigs[i], command, done)
 	}
 	waitgroup.Wait()
 	for v := range done {
-		fmt.Println(v)
+		log.Println(v)
 		if len(done) <= 0 { // 如果现有数据量为0，跳出循环
 			close(done)
 		}
@@ -237,7 +237,7 @@ func sshexec(sc *sshconfig, command string, done chan string) {
     stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
         waitgroup.Done()
-        fmt.Println("sshexec error is : %v", err)
+        log.Println("sshexec error is : %v", err)
 		done <- fmt.Sprintf(stderr)
 		return
 	}
@@ -273,7 +273,7 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	}
 	stdout, stderr, err := client.TransferData(destfile, data)
 	if err != nil {
-		fmt.Printf(stderr)
+		log.Printf(stderr)
 	}
 	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
@@ -294,6 +294,6 @@ func mustGetStringVar(c *cli.Context, key string) string {
 }
 
 func errExit(code int, format string, val ...interface{}) {
-	fmt.Fprintf(os.Stderr, format+"\n", val...)
+	log.Fatalf(os.Stderr, format+"\n", val...)
 	os.Exit(code)
 }
