@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"reflect"
 )
 
 func Test_Parseini(t *testing.T) {
@@ -59,15 +60,13 @@ func Test_ParseHostfile(t *testing.T) {
 	if err != nil {
 		t.Error("parseHostfile error: ", err)
 	}
-	if sshconfigs[0].user == "root" &&
-		sshconfigs[0].address == "118.190.75.175" &&
-		sshconfigs[0].port == "22" &&
-		sshconfigs[1].user == "weakiwi" &&
-		sshconfigs[1].address == "10.9.9.2" &&
-		sshconfigs[1].port == "22" {
-			t.Log("parseHostfile pass")
-		} else {
-			t.Error("parseHostfile failed: ", sshconfigs[0])
-			t.Error("parseHostfile failed: ", sshconfigs[1])
-		}
+	var my_sshconfig sshconfig
+	my_sshconfig.user = "root"
+	my_sshconfig.port = "22"
+	my_sshconfig.address = "118.190.75.175"
+	if reflect.DeepEqual(sshconfigs[0], my_sshconfig) {
+		t.Log("parseHostfile pass")
+	} else {
+		t.Error("parseHostfile failed")
+	}
 }
