@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"crypto/md5"
-	"fmt"
 	"github.com/scottkiss/gosshtool"
 	"github.com/urfave/cli"
 	"io"
