@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"github.com/go-ini/ini"
 	"fmt"
+	"github.com/go-ini/ini"
 	"io"
 	"log"
 	"os"

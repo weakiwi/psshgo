@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"crypto/md5"
+	"fmt"
 	"github.com/scottkiss/gosshtool"
 	"github.com/urfave/cli"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,7 +28,7 @@ func main() {
 	}
 	pssh_logfile := os.Getenv("P_LOGFILE")
 	if pssh_logfile != "" {
-		f, _ := os.OpenFile(string(pssh_logfile), os.O_WRONLY|os.O_CREATE|os.O_SYNC|os.O_APPEND,0755)
+		f, _ := os.OpenFile(string(pssh_logfile), os.O_WRONLY|os.O_CREATE|os.O_SYNC|os.O_APPEND, 0755)
 		fmt.Println("main pssh_logfile: ", f)
 		os.Stdout = f
 		os.Stderr = f
