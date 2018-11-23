@@ -29,6 +29,7 @@ func main() {
 	pssh_logfile := os.Getenv("P_LOGFILE")
 	if pssh_logfile != "" {
 		f, _ := os.OpenFile(string(pssh_logfile), os.O_WRONLY|os.O_CREATE|os.O_SYNC|os.O_APPEND,0755)
+		fmt.Println("main pssh_logfile: ", f)
 		os.Stdout = f
 		os.Stderr = f
 	}
