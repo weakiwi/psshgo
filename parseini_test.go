@@ -47,9 +47,26 @@ func Test_StringToSshconfig(t *testing.T) {
 	} else {
 		t.Error("weakiwi@192.168.10.1:2233 address part pass")
 	}
-	if ssh_string_type_2.port == "1111" {
+	if ssh_string_type_2.port == "2233" {
 		t.Log("weakiwi@192.168.10.1:2233 port part  pass")
 	} else {
 		t.Error("weakiwi@192.168.10.1:2233 port part pass")
 	}
+}
+
+func Test_ParseHostfile(t *testing.T) {
+	sshconfigs, err := parseHostfile("host1")
+	if err != nil {
+		t.Error("parseHostfile error: ", err)
+	}
+	if sshconfigs[0].user == "root" &&
+		sshconfigs[0].address == "118.190.75.175" &&
+		sshconfigs[0].port == "22" &&
+		sshconfigs[1].user == "weakiwi" &&
+		sshconfigs[1].address == "10.9.9.2" &&
+		sshconfigs[1].port == "22" {
+			t.Log("parseHostfile pass")
+		} else {
+			t.Error("parseHostfile failed")
+		}
 }
