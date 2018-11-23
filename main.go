@@ -288,7 +288,8 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 func mustGetStringVar(c *cli.Context, key string) string {
 	v := strings.TrimSpace(c.String(key))
 	if v == "" {
-		errExit(1, "%s must be provided", key)
+		//errExit(1, "%s must be provided", key)
+		log.Fatalf("%s must be provided", key)
 	}
 	return v
 }
