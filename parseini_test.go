@@ -7,7 +7,7 @@ import (
 func Test_Parseini(t *testing.T) {
 	playbooks, err := parseini("playbook.ini")
 	if err != nil {
-		t.Error("parseini error: %v", err)
+		t.Error("parseini error: ", err)
 	}
 	my_playbook_1 := playbooks[0]
 	my_playbook_2 := playbooks[1]
