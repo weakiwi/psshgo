@@ -47,7 +47,7 @@ func Test_StringToSshconfig(t *testing.T) {
 	} else {
 		t.Error("weakiwi@192.168.10.1:2233 address part pass")
 	}
-	if ssh_string_type_2.port == "2233" {
+	if ssh_string_type_2.port == "1111" {
 		t.Log("weakiwi@192.168.10.1:2233 port part  pass")
 	} else {
 		t.Error("weakiwi@192.168.10.1:2233 port part pass")
