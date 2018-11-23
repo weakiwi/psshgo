@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"github.com/scottkiss/gosshtool"
 	"github.com/urfave/cli"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -237,11 +238,11 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	if err != nil {
 		waitgroup.Done()
 		log.Println("sshexec error is : %v", err)
-		done <- log.Printf(stderr)
+		done <- fmt.Sprintf(stderr)
 		return
 	}
 	waitgroup.Done()
-	done <- log.Printf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
 	return
 
 }
@@ -277,10 +278,10 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
-		done <- log.Printf(stderr)
+		done <- fmt.Sprintf(stderr)
 	}
 	waitgroup.Done()
-	done <- log.Printf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
 	return
 }
 
