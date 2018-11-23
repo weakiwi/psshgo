@@ -67,6 +67,7 @@ func Test_ParseHostfile(t *testing.T) {
 		sshconfigs[1].port == "22" {
 			t.Log("parseHostfile pass")
 		} else {
-			t.Error("parseHostfile failed")
+			t.Error("parseHostfile failed: ", sshconfigs[0])
+			t.Error("parseHostfile failed: ", sshconfigs[1])
 		}
 }
