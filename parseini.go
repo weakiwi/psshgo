@@ -20,20 +20,17 @@ func parseini(path string) (playbooks []playbook, err error) {
 	var my_playbook playbook
 	var sshconfigs []sshconfig
 	secs := cfg.Sections()
+	hosts := strings.Split(cfg.Section("").Key("hosts").String(), ",")
+	for j := range hosts {
+		k, err := stringToSshconfig(hosts[j])
+		if err != nil {
+			log.Fatalf("parseini error: %v", err)
+		}
+		sshconfigs = append(sshconfigs, k)
+	}
 	for i := range secs {
         ini_type := secs[i].Key("type").String()
         my_playbook.name = secs[i].Name()
-		if ini_type == "hosts" {
-			ips := strings.Split(secs[i].Key("ips").String(), ",")
-			for j := range ips {
-				k, err := stringToSshconfig(ips[j])
-				if err != nil {
-					log.Fatalf("parseini error: %v", err)
-				}
-				sshconfigs = append(sshconfigs, k)
-			}
-			continue
-		}
 		// if operate type is ssh
 		if secs[i].HasKey("command") == true {
 			my_playbook.command = secs[i].Key("command").String()
