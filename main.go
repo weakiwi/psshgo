@@ -294,6 +294,6 @@ func mustGetStringVar(c *cli.Context, key string) string {
 }
 
 func errExit(code int, format string, val ...interface{}) {
-	log.Fatalf(os.Stderr + format+"\n", val...)
+	fmt.Fprintf(os.Stderr, format+"\n", val...)
 	os.Exit(code)
 }
