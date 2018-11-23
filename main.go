@@ -236,7 +236,7 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
-		log.Println("sshexec error is : %v", err)
+		log.Println("sshexec error is : ", err)
 		done <- fmt.Sprintf(stderr)
 		return
 	}
