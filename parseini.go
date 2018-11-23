@@ -75,7 +75,7 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 		myconfig.address = strings.Replace(string(line), "\n", "", -1)
 		if myconfig.address == "" {
 			log.Fatalf("stringToSshconfig error: line is blank!")
-			return myconfig, log.Panic("stringToSshconfig error: line is blank!")
+			return myconfig, log.Paniclf("stringToSshconfig error: line is blank!")
 		}
 		myconfig.port = "22"
 	}
@@ -85,7 +85,7 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
 	fi, err := os.Open(hostfile)
 	if err != nil {
-		log.Panic("parseHostfile.Open Error: %s\n", err)
+		log.Paniclf("parseHostfile.Open Error: %s\n", err)
 		return nil, err
 	}
 	br := bufio.NewReader(fi)
