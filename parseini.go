@@ -57,7 +57,7 @@ func parseini(path string) (playbooks []playbook, err error) {
 func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 	if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
 		s := strings.Split(string(line), "@")
-		myconfig.user = strings.TrimSpaces([0])
+		myconfig.user = strings.TrimSpace(s[0])
 		s1 := strings.Split(s[1], ":")
 		myconfig.address = strings.TrimSpace(s1[0])
 		myconfig.port = strings.TrimSpace(s1[1])
