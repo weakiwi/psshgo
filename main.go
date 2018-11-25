@@ -190,12 +190,12 @@ func ComputeLine(path string) (num int) {
 	return
 }
 
-func psshexec(servers []sshconfig, command string) {
+func psshexec(servers []*gosshtool.NewSSHClient, command string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go sshexec(&servers[i], command, done)
+		go sshexec_without_connect(servers[i], command, done)
 	}
 	waitgroup.Wait()
 	for v := range done {
