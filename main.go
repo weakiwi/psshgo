@@ -216,6 +216,28 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
+func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
+	pkey := os.Getenv("PKEY")
+	if pkey == "" {
+		pkey = "/root/.ssh/id_rsa"
+	}
+	key, err := ioutil.ReadFile(pkey)
+	if err != nil {
+		log.Fatalf("Unable to read private key: %v", err)
+	}
+	pkey = string(key)
+	config2 := &gosshtool.SSHClientConfig{
+		User:       sc.user,
+		Privatekey: pkey,
+		Host:       sc.address,
+	}
+	sshclient, err := gosshtool.NewSSHClient(config2)
+	if err != nil {
+		log.Panicln("make_a_connection.gosshtool.NewSSHClient error: ", err)
+		return nil, err
+	}
+	return sshclient, nil
+}
 func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, done chan string) {
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
