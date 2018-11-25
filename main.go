@@ -117,7 +117,7 @@ func pini(c *cli.Context) {
 	for j := range playbooks[0].servers {
 		tmp_conn, err := make_a_connection(&playbooks[0].servers[j])
 		if err != nil {
-			log.Fatalf("make_a_connection error: ", err)
+			log.Fatalf("make_a_connection error: %v", err)
 			os.Exit(1)
 		}
 		sc_group = append(sc_group, tmp_conn)
@@ -263,7 +263,7 @@ func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, don
 func sshexec(sc *sshconfig, command string, done chan string) {
 	sshclient, err := make_a_connection(sc)
 	if err != nil {
-		log.Fatalf("sshexec.make_a_connection error: ", err)
+		log.Fatalf("sshexec.make_a_connection error: %v", err)
 	}
 	sshexec_without_connect(sshclient, command, done)
 }
