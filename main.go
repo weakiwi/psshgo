@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
-	"github.com/scottkiss/gosshtool"
+	"github.com/weakiwi/gosshtool"
 	"github.com/urfave/cli"
 	"io"
 	"io/ioutil"
@@ -225,7 +225,7 @@ func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, don
 		return
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sshclient.SSHClientConfig.Host, CLR_N, stdout)
 	return
 }
 func sshexec(sc *sshconfig, command string, done chan string) {
