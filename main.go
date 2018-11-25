@@ -138,7 +138,7 @@ func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 		waitgroup.Add(1)
 		go scpexec_without_connection(servers[i], srcfile, destfile, done)
 	}
-	//md5File(srcfile)
+	md5File(srcfile)
 	waitgroup.Wait()
 	for v := range done {
 		log.Println(v)
@@ -162,7 +162,7 @@ func pscp(c *cli.Context) {
 		waitgroup.Add(1)
 		go scpexec(&myconfigs[i], srcfile, destfile, done)
 	}
-	//md5File(srcfile)
+	md5File(srcfile)
 	waitgroup.Wait()
 	for v := range done {
 		log.Println(v)
@@ -278,12 +278,6 @@ func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, des
 		return
 	}
 	stdout, stderr, err := client.TransferData(destfile, data)
-	h := md5.New()
-	_, err = io.Copy(h, f)
-	if err != nil {
-		return
-	}
-	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
 	if err != nil {
 		log.Printf(stderr)
 	}
@@ -321,12 +315,6 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 		return
 	}
 	stdout, stderr, err := client.TransferData(destfile, data)
-	h := md5.New()
-	_, err = io.Copy(h, f)
-	if err != nil {
-		return
-	}
-	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
 	if err != nil {
 		log.Printf(stderr)
 	}
