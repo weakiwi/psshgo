@@ -248,32 +248,11 @@ func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, don
 	return
 }
 func sshexec(sc *sshconfig, command string, done chan string) {
-	pkey := os.Getenv("PKEY")
-	if pkey == "" {
-		pkey = "/root/.ssh/id_rsa"
-	}
-	key, err := ioutil.ReadFile(pkey)
+	sshclient, err := make_a_connection(sc)
 	if err != nil {
-		log.Fatalf("Unable to read private key: %v", err)
+		log.Fatalf("sshexec.make_a_connection error: ", err)
 	}
-	pkey = string(key)
-	config2 := &gosshtool.SSHClientConfig{
-		User:       sc.user,
-		Privatekey: pkey,
-		Host:       sc.address,
-	}
-	sshclient := gosshtool.NewSSHClient(config2)
-	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
-	if err != nil {
-		waitgroup.Done()
-		log.Println("sshexec error is : ", err)
-		done <- fmt.Sprintf(stderr)
-		return
-	}
-	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
-	return
-
+	sshexec_without_connect(sshclient, command, done)
 }
 
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
