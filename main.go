@@ -216,7 +216,18 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-
+func sshexec_without_connect(sshclient *SSHClient, command string, don chan string) {
+	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
+	if err != nil {
+		waitgroup.Done()
+		log.Println("sshexec error is : ", err)
+		done <- fmt.Sprintf(stderr)
+		return
+	}
+	waitgroup.Done()
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	return
+}
 func sshexec(sc *sshconfig, command string, done chan string) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
