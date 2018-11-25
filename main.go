@@ -109,6 +109,14 @@ func pini(c *cli.Context) {
 		log.Fatalf("pini error: %v", err)
 		os.Exit(1)
 	}
+	var sc_group []gosshtool.SSHClient
+	if playbooks[0].servers == nil {
+		log.Fatalf("playbooks format error")
+		os.Exit(1)
+	}
+	for j := range playbooks[0].servers {
+		append(sc_group, make_a_connection(playbooks[0].servers[j]))
+	}
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
 		if playbooks[i].playbook_type == "scp" {
