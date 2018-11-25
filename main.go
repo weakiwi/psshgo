@@ -291,41 +291,46 @@ func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, des
 	return
 }
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
-	pkey := os.Getenv("PKEY")
-	if pkey == "" {
-		pkey = "/root/.ssh/id_rsa"
-	}
-	key, err := ioutil.ReadFile(pkey)
+	sshclient, err := make_a_connection(sc)
 	if err != nil {
-		log.Fatalf("Unable to read private key: %v", err)
+		log.Fatalf("sshexec.make_a_connection error: %v", err)
 	}
-	pkey = string(key)
-	config2 := &gosshtool.SSHClientConfig{
-		User:       sc.user,
-		Privatekey: pkey,
-		Host:       sc.address,
-	}
-	client := gosshtool.NewSSHClient(config2)
-	f, err := os.Open(srcfile)
-	if err != nil {
-		return
-	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return
-	}
-	stdout, stderr, err := client.TransferData(destfile, data)
-	if err != nil {
-		log.Printf(stderr)
-	}
-	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
-	if err != nil {
-		waitgroup.Done()
-		done <- fmt.Sprintf(stderr)
-	}
-	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
-	return
+	scpexec_without_connection(sshclient, srcfile, destfile)
+//	pkey := os.Getenv("PKEY")
+//	if pkey == "" {
+//		pkey = "/root/.ssh/id_rsa"
+//	}
+//	key, err := ioutil.ReadFile(pkey)
+//	if err != nil {
+//		log.Fatalf("Unable to read private key: %v", err)
+//	}
+//	pkey = string(key)
+//	config2 := &gosshtool.SSHClientConfig{
+//		User:       sc.user,
+//		Privatekey: pkey,
+//		Host:       sc.address,
+//	}
+//	client := gosshtool.NewSSHClient(config2)
+//	f, err := os.Open(srcfile)
+//	if err != nil {
+//		return
+//	}
+//	data, err := ioutil.ReadAll(f)
+//	if err != nil {
+//		return
+//	}
+//	stdout, stderr, err := client.TransferData(destfile, data)
+//	if err != nil {
+//		log.Printf(stderr)
+//	}
+//	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
+//	if err != nil {
+//		waitgroup.Done()
+//		done <- fmt.Sprintf(stderr)
+//	}
+//	waitgroup.Done()
+//	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+//	return
 }
 
 func mustGetStringVar(c *cli.Context, key string) string {
