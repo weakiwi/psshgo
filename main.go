@@ -216,7 +216,7 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-func sshexec_without_connect(sshclient *SSHClient, command string, don chan string) {
+func sshexec_without_connect(sshclient *SSHClient, command string, done chan string) {
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
