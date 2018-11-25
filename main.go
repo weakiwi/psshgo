@@ -229,7 +229,7 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-func make_a_connection(sc *sshconfig) (sshclient gosshtool.SSHClient, err error) {
+func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
 		pkey = "/root/.ssh/id_rsa"
