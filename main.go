@@ -273,17 +273,17 @@ func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, des
 	if err != nil {
 		return
 	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	stdout, stderr, err := client.TransferData(destfile, data)
 	h := md5.New()
 	_, err = io.Copy(h, f)
 	if err != nil {
 		return
 	}
 	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return
-	}
-	stdout, stderr, err := client.TransferData(destfile, data)
 	if err != nil {
 		log.Printf(stderr)
 	}
