@@ -190,7 +190,7 @@ func ComputeLine(path string) (num int) {
 	return
 }
 
-func psshexec(servers []gosshtool.NewSSHClient, command string) {
+func psshexec(servers []*gosshtool.SSHClient, command string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
