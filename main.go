@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
-	"github.com/scottkiss/gosshtool"
 	"github.com/urfave/cli"
+	"github.com/weakiwi/gosshtool"
 	"io"
 	"io/ioutil"
 	"log"
@@ -109,21 +109,34 @@ func pini(c *cli.Context) {
 		log.Fatalf("pini error: %v", err)
 		os.Exit(1)
 	}
+	var sc_group []*gosshtool.SSHClient
+	if playbooks[0].servers == nil {
+		log.Fatalf("playbooks format error")
+		os.Exit(1)
+	}
+	for j := range playbooks[0].servers {
+		tmp_conn, err := make_a_connection(&playbooks[0].servers[j])
+		if err != nil {
+			log.Fatalf("make_a_connection error: %v", err)
+			os.Exit(1)
+		}
+		sc_group = append(sc_group, tmp_conn)
+	}
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
 		if playbooks[i].playbook_type == "scp" {
-			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
+			pscpexec(sc_group, playbooks[i].src, playbooks[i].dst)
 		} else if playbooks[i].playbook_type == "ssh" {
-			psshexec(playbooks[i].servers, playbooks[i].command)
+			psshexec(sc_group, playbooks[i].command)
 		}
 	}
 }
-func pscpexec(servers []sshconfig, srcfile string, destfile string) {
+func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go scpexec(&servers[i], srcfile, destfile, done)
+		go scpexec_without_connection(servers[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
 	waitgroup.Wait()
@@ -177,12 +190,12 @@ func ComputeLine(path string) (num int) {
 	return
 }
 
-func psshexec(servers []sshconfig, command string) {
+func psshexec(servers []*gosshtool.SSHClient, command string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go sshexec(&servers[i], command, done)
+		go sshexec_without_connect(servers[i], command, done)
 	}
 	waitgroup.Wait()
 	for v := range done {
@@ -216,8 +229,7 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-
-func sshexec(sc *sshconfig, command string, done chan string) {
+func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
 		pkey = "/root/.ssh/id_rsa"
@@ -225,6 +237,7 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	key, err := ioutil.ReadFile(pkey)
 	if err != nil {
 		log.Fatalf("Unable to read private key: %v", err)
+		return nil, err
 	}
 	pkey = string(key)
 	config2 := &gosshtool.SSHClientConfig{
@@ -232,7 +245,10 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 		Privatekey: pkey,
 		Host:       sc.address,
 	}
-	sshclient := gosshtool.NewSSHClient(config2)
+	sshclient = gosshtool.NewSSHClient(config2)
+	return sshclient, nil
+}
+func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, done chan string) {
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
@@ -241,27 +257,18 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 		return
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sshclient.SSHClientConfig.Host, CLR_N, stdout)
 	return
-
+}
+func sshexec(sc *sshconfig, command string, done chan string) {
+	sshclient, err := make_a_connection(sc)
+	if err != nil {
+		log.Fatalf("sshexec.make_a_connection error: %v", err)
+	}
+	sshexec_without_connect(sshclient, command, done)
 }
 
-func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
-	pkey := os.Getenv("PKEY")
-	if pkey == "" {
-		pkey = "/root/.ssh/id_rsa"
-	}
-	key, err := ioutil.ReadFile(pkey)
-	if err != nil {
-		log.Fatalf("Unable to read private key: %v", err)
-	}
-	pkey = string(key)
-	config2 := &gosshtool.SSHClientConfig{
-		User:       sc.user,
-		Privatekey: pkey,
-		Host:       sc.address,
-	}
-	client := gosshtool.NewSSHClient(config2)
+func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
 	f, err := os.Open(srcfile)
 	if err != nil {
 		return
@@ -280,8 +287,15 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 		done <- fmt.Sprintf(stderr)
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, client.SSHClientConfig.Host, CLR_N, stdout)
 	return
+}
+func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
+	sshclient, err := make_a_connection(sc)
+	if err != nil {
+		log.Fatalf("sshexec.make_a_connection error: %v", err)
+	}
+	scpexec_without_connection(sshclient, srcfile, destfile, done)
 }
 
 func mustGetStringVar(c *cli.Context, key string) string {
