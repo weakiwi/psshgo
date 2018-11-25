@@ -232,7 +232,7 @@ func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error
 		Privatekey: pkey,
 		Host:       sc.address,
 	}
-	sshclient := gosshtool.NewSSHClient(config2)
+	sshclient = gosshtool.NewSSHClient(config2)
 	return sshclient, nil
 }
 func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, done chan string) {
