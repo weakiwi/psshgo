@@ -115,7 +115,12 @@ func pini(c *cli.Context) {
 		os.Exit(1)
 	}
 	for j := range playbooks[0].servers {
-		append(sc_group, make_a_connection(playbooks[0].servers[j]))
+		tmp_conn, err := make_a_connection(&playbooks[0].servers[j])
+		if err != nil {
+			log.Fatalf("make_a_connection error: ", err)
+			os.Exit(1)
+		}
+		sc_group = append(sc_group, tmp_conn)
 	}
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
