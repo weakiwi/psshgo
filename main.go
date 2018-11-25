@@ -109,7 +109,7 @@ func pini(c *cli.Context) {
 		log.Fatalf("pini error: %v", err)
 		os.Exit(1)
 	}
-	var sc_group []gosshtool.SSHClient
+	var sc_group []*gosshtool.SSHClient
 	if playbooks[0].servers == nil {
 		log.Fatalf("playbooks format error")
 		os.Exit(1)
@@ -120,7 +120,7 @@ func pini(c *cli.Context) {
 			log.Fatalf("make_a_connection error: ", err)
 			os.Exit(1)
 		}
-		sc_group = append(sc_group, &tmp_conn)
+		sc_group = append(sc_group, tmp_conn)
 	}
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
@@ -229,7 +229,7 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
+func make_a_connection(sc *sshconfig) (sshclient gosshtool.SSHClient, err error) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
 		pkey = "/root/.ssh/id_rsa"
