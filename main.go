@@ -120,7 +120,7 @@ func pini(c *cli.Context) {
 			log.Fatalf("make_a_connection error: ", err)
 			os.Exit(1)
 		}
-		sc_group = append(sc_group, tmp_conn)
+		sc_group = append(sc_group, &tmp_conn)
 	}
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
