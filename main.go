@@ -125,9 +125,9 @@ func pini(c *cli.Context) {
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
 		if playbooks[i].playbook_type == "scp" {
-			pscpexec(sc_group, playbooks[i].src, playbooks[i].dst)
+			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
 		} else if playbooks[i].playbook_type == "ssh" {
-			psshexec(playbooks[i].servers, playbooks[i].command)
+			psshexec(sc_group, playbooks[i].command)
 		}
 	}
 }
