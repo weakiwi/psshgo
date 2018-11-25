@@ -125,18 +125,18 @@ func pini(c *cli.Context) {
 	for i := range playbooks {
 		log.Println("#######start ", playbooks[i].name, " ########")
 		if playbooks[i].playbook_type == "scp" {
-			pscpexec(playbooks[i].servers, playbooks[i].src, playbooks[i].dst)
+			pscpexec(sc_group, playbooks[i].src, playbooks[i].dst)
 		} else if playbooks[i].playbook_type == "ssh" {
 			psshexec(sc_group, playbooks[i].command)
 		}
 	}
 }
-func pscpexec(servers []sshconfig, srcfile string, destfile string) {
+func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go scpexec(&servers[i], srcfile, destfile, done)
+		go scpexec_without_connection(servers[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
 	waitgroup.Wait()
@@ -268,6 +268,28 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	sshexec_without_connect(sshclient, command, done)
 }
 
+func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
+	f, err := os.Open(srcfile)
+	if err != nil {
+		return
+	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	stdout, stderr, err := client.TransferData(destfile, data)
+	if err != nil {
+		log.Printf(stderr)
+	}
+	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
+	if err != nil {
+		waitgroup.Done()
+		done <- fmt.Sprintf(stderr)
+	}
+	waitgroup.Done()
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	return
+}
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
