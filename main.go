@@ -287,7 +287,7 @@ func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, des
 		done <- fmt.Sprintf(stderr)
 	}
 	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sc.address, CLR_N, stdout)
+	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, client.SSHClientConfig.Host, CLR_N, stdout)
 	return
 }
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
