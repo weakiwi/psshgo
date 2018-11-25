@@ -295,7 +295,7 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	if err != nil {
 		log.Fatalf("sshexec.make_a_connection error: %v", err)
 	}
-	scpexec_without_connection(sshclient, srcfile, destfile)
+	scpexec_without_connection(sshclient, srcfile, destfile, done)
 //	pkey := os.Getenv("PKEY")
 //	if pkey == "" {
 //		pkey = "/root/.ssh/id_rsa"
