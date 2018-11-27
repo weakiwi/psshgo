@@ -89,6 +89,7 @@ func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
 		log.Panicln("parseHostfile.Open Error: \n", err)
 		return nil, err
 	}
+	defer fi.Close()
 	br := bufio.NewReader(fi)
 	for {
 		line, err := br.ReadString('\n')

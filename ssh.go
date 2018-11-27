@@ -45,6 +45,7 @@ func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, des
 	if err != nil {
 		return
 	}
+	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		return
