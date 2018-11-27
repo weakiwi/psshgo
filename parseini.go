@@ -66,14 +66,14 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 		s := strings.Split(string(line), "@")
 		myconfig = sshconfig{
 			user 	: strings.TrimSpace(s[0]),
-			address : strings.TrimSpace(s1[0]),
+			address : strings.TrimSpace(s[1]),
 			port 	: "22",
 		}
 	} else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":") {
 		s := strings.Split(string(line), ":")
 		myconfig = sshconfig{
 			user 	: "root",
-			address : strings.TrimSpace(s1[0]),
+			address : strings.TrimSpace(s[0]),
 			port 	: strings.TrimSpace(s[1]),
 		}
 	} else {
