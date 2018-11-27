@@ -15,7 +15,6 @@ func parseini(path string) (playbooks []playbook, err error) {
 	if err != nil {
 		log.Fatalf("open ini err: %v", err)
 		return nil, err
-		os.Exit(1)
 	}
 	var my_playbook playbook
 	var sshconfigs []sshconfig
