@@ -56,28 +56,36 @@ func parseini(path string) (playbooks []playbook, err error) {
 func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 	if strings.Contains(string(line), "@") && strings.Contains(string(line), ":") {
 		s := strings.Split(string(line), "@")
-		myconfig.user = strings.TrimSpace(s[0])
 		s1 := strings.Split(s[1], ":")
-		myconfig.address = strings.TrimSpace(s1[0])
-		myconfig.port = strings.TrimSpace(s1[1])
+		myconfig = sshconfig{
+			user = strings.TrimSpace(s[0]),
+			address = strings.TrimSpace(s1[0]),
+			port = strings.TrimSpace(s1[1]),
+		}
 	} else if strings.Contains(string(line), ":") == false && strings.Contains(string(line), "@") {
 		s := strings.Split(string(line), "@")
-		myconfig.user = strings.TrimSpace(s[0])
-		myconfig.address = strings.TrimSpace(s[1])
-		myconfig.port = "22"
+		myconfig = sshconfig{
+			user = strings.TrimSpace(s[0]),
+			address = strings.TrimSpace(s1[0]),
+			port = "22",
+		}
 	} else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":") {
-		myconfig.user = "root"
 		s := strings.Split(string(line), ":")
-		myconfig.address = strings.TrimSpace(s[0])
-		myconfig.port = strings.TrimSpace(s[1])
+		myconfig = sshconfig{
+			user = "root",
+			address = strings.TrimSpace(s1[0]),
+			port = strings.TrimSpace(s[1]),
+		}
 	} else {
-		myconfig.user = "root"
-		myconfig.address = strings.Replace(string(line), "\n", "", -1)
+		myconfig = sshconfig{
+			user = "root",
+			address = strings.Replace(string(line), "\n", "", -1),
+			port = "22",
+		}
 		if myconfig.address == "" {
 			log.Fatalf("stringToSshconfig error: line is blank!")
 			return myconfig, fmt.Errorf("stringToSshconfig error: line is blank!")
 		}
-		myconfig.port = "22"
 	}
 	return myconfig, nil
 
