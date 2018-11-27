@@ -58,29 +58,29 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 		s := strings.Split(string(line), "@")
 		s1 := strings.Split(s[1], ":")
 		myconfig = sshconfig{
-			user = strings.TrimSpace(s[0]),
-			address = strings.TrimSpace(s1[0]),
-			port = strings.TrimSpace(s1[1]),
+			user 	: strings.TrimSpace(s[0]),
+			address : strings.TrimSpace(s1[0]),
+			port 	: strings.TrimSpace(s1[1]),
 		}
 	} else if strings.Contains(string(line), ":") == false && strings.Contains(string(line), "@") {
 		s := strings.Split(string(line), "@")
 		myconfig = sshconfig{
-			user = strings.TrimSpace(s[0]),
-			address = strings.TrimSpace(s1[0]),
-			port = "22",
+			user 	: strings.TrimSpace(s[0]),
+			address : strings.TrimSpace(s1[0]),
+			port 	: "22",
 		}
 	} else if strings.Contains(string(line), "@") == false && strings.Contains(string(line), ":") {
 		s := strings.Split(string(line), ":")
 		myconfig = sshconfig{
-			user = "root",
-			address = strings.TrimSpace(s1[0]),
-			port = strings.TrimSpace(s[1]),
+			user 	: "root",
+			address : strings.TrimSpace(s1[0]),
+			port 	: strings.TrimSpace(s[1]),
 		}
 	} else {
 		myconfig = sshconfig{
-			user = "root",
-			address = strings.Replace(string(line), "\n", "", -1),
-			port = "22",
+			user 	: "root",
+			address : strings.Replace(string(line), "\n", "", -1),
+			port 	: "22",
 		}
 		if myconfig.address == "" {
 			log.Fatalf("stringToSshconfig error: line is blank!")
