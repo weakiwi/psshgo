@@ -86,7 +86,7 @@ func stringToSshconfig(line string) (myconfig sshconfig, err error) {
 func parseHostfile(hostfile string) (result_sshconfig []sshconfig, err error) {
 	fi, err := os.Open(hostfile)
 	if err != nil {
-		log.Panicln("parseHostfile.Open Error: \n", err)
+		log.Fatalf("parseHostfile.Open Error: \n", err)
 		return nil, err
 	}
 	defer fi.Close()

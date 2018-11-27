@@ -21,7 +21,8 @@ func mustGetStringVar(c *cli.Context, key string) string {
 func md5File(srcfile string) {
 	file, err := os.Open(srcfile)
 	if err != nil {
-		panic(err)
+		log.Fatalf(err)
+		return
 	}
 
 	h := md5.New()
