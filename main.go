@@ -84,7 +84,6 @@ var (
 	}
 )
 
-
 func pini(c *cli.Context) {
 	inifile := mustGetStringVar(c, "i")
 	playbooks, err := parseini(inifile)

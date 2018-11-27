@@ -1,13 +1,13 @@
 package main
 
 import (
-        "strings"
-        "crypto/md5"
-        "log"
-        "io"
-        "bufio"
-        "github.com/urfave/cli"
-        "os"
+	"bufio"
+	"crypto/md5"
+	"github.com/urfave/cli"
+	"io"
+	"log"
+	"os"
+	"strings"
 )
 
 func mustGetStringVar(c *cli.Context, key string) string {
@@ -49,4 +49,3 @@ func ComputeLine(path string) (num int) {
 	}
 	return
 }
-
