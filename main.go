@@ -1,16 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"crypto/md5"
 	"fmt"
 	"github.com/urfave/cli"
 	"github.com/weakiwi/gosshtool"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -88,19 +84,6 @@ var (
 	}
 )
 
-func md5File(srcfile string) {
-	file, err := os.Open(srcfile)
-	if err != nil {
-		panic(err)
-	}
-
-	h := md5.New()
-	_, err = io.Copy(h, file)
-	if err != nil {
-		return
-	}
-	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
-}
 
 func pini(c *cli.Context) {
 	inifile := mustGetStringVar(c, "i")
@@ -169,23 +152,6 @@ func pscp(c *cli.Context) {
 		if len(done) <= 0 { // 如果现有数据量为0，跳出循环
 			close(done)
 		}
-	}
-	return
-}
-func ComputeLine(path string) (num int) {
-	f, err := os.Open(path)
-	if nil != err {
-		log.Println(err)
-		return
-	}
-	defer f.Close()
-	r := bufio.NewReader(f)
-	for {
-		_, err := r.ReadString('\n')
-		if io.EOF == err || nil != err {
-			break
-		}
-		num += 1
 	}
 	return
 }
@@ -296,12 +262,4 @@ func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 		log.Fatalf("sshexec.make_a_connection error: %v", err)
 	}
 	scpexec_without_connection(sshclient, srcfile, destfile, done)
-}
-
-func mustGetStringVar(c *cli.Context, key string) string {
-	v := strings.TrimSpace(c.String(key))
-	if v == "" {
-		log.Fatalf("%s must be provided", key)
-	}
-	return v
 }
