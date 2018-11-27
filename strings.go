@@ -21,7 +21,7 @@ func mustGetStringVar(c *cli.Context, key string) string {
 func md5File(srcfile string) {
 	file, err := os.Open(srcfile)
 	if err != nil {
-		log.Fatalf(err)
+		log.Fatalf("md5Fiel os.Open error: %v", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func md5File(srcfile string) {
 func ComputeLine(path string) (num int) {
 	f, err := os.Open(path)
 	if nil != err {
-		log.Println(err)
+		log.Fatalf("ComputeLine os.Open error: %v", err)
 		return
 	}
 	defer f.Close()

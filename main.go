@@ -193,7 +193,6 @@ func pssh(c *cli.Context) {
 	}
 }
 
-
 func sshexec(sc *sshconfig, command string, done chan string) {
 	sshclient, err := make_a_connection(sc)
 	if err != nil {

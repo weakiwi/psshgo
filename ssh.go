@@ -1,12 +1,13 @@
 package main
 
 import (
-	"os"
-	"io/ioutil"
 	"fmt"
-	"log"
 	"github.com/weakiwi/gosshtool"
+	"io/ioutil"
+	"log"
+	"os"
 )
+
 func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
