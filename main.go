@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/urfave/cli"
 	"github.com/weakiwi/gosshtool"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -203,7 +201,6 @@ func sshexec(sc *sshconfig, command string, done chan string) {
 	}
 	sshexec_without_connect(sshclient, command, done)
 }
-
 
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
 	sshclient, err := make_a_connection(sc)
