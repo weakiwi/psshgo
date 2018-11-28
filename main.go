@@ -95,9 +95,9 @@ func pini(c *cli.Context) {
 		os.Exit(1)
 	}
 	for j := range playbooks[0].servers {
-		tmp_conn, err := make_a_connection(&playbooks[0].servers[j])
+		tmp_conn, err := makeConnection(&playbooks[0].servers[j])
 		if err != nil {
-			log.Fatalf("make_a_connection error: %v", err)
+			log.Fatalf("makeConnection error: %v", err)
 			os.Exit(1)
 		}
 		sc_group = append(sc_group, tmp_conn)
@@ -116,7 +116,7 @@ func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go scpexec_without_connection(servers[i], srcfile, destfile, done)
+		go scpexecWithoutConnection(servers[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
 	waitgroup.Wait()
@@ -158,7 +158,7 @@ func psshexec(servers []*gosshtool.SSHClient, command string) {
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go sshexec_without_connect(servers[i], command, done)
+		go sshexecWithoutConnect(servers[i], command, done)
 	}
 	waitgroup.Wait()
 	for v := range done {
@@ -194,17 +194,17 @@ func pssh(c *cli.Context) {
 }
 
 func sshexec(sc *sshconfig, command string, done chan string) {
-	sshclient, err := make_a_connection(sc)
+	sshclient, err := makeConnection(sc)
 	if err != nil {
-		log.Fatalf("sshexec.make_a_connection error: %v", err)
+		log.Fatalf("sshexec.makeConnection error: %v", err)
 	}
-	sshexec_without_connect(sshclient, command, done)
+	sshexecWithoutConnect(sshclient, command, done)
 }
 
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
-	sshclient, err := make_a_connection(sc)
+	sshclient, err := makeConnection(sc)
 	if err != nil {
-		log.Fatalf("sshexec.make_a_connection error: %v", err)
+		log.Fatalf("sshexec.makeConnection error: %v", err)
 	}
-	scpexec_without_connection(sshclient, srcfile, destfile, done)
+	scpexecWithoutConnection(sshclient, srcfile, destfile, done)
 }

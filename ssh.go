@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
+func makeConnection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 	pkey := os.Getenv("PKEY")
 	if pkey == "" {
 		pkey = "/root/.ssh/id_rsa"
@@ -28,7 +28,7 @@ func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error
 	return sshclient, nil
 }
 
-func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, done chan string) {
+func sshexecWithoutConnect(sshclient *gosshtool.SSHClient, command string, done chan string) {
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
@@ -41,7 +41,7 @@ func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, don
 	return
 }
 
-func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
+func scpexecWithoutConnection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
 	f, err := os.Open(srcfile)
 	if err != nil {
 		return
