@@ -1,5 +1,5 @@
 id_rsa
-pssh
-psshgo
+./pssh
+./psshgo
 *.log
-host*
+./host*
