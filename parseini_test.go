@@ -6,7 +6,7 @@ import (
 )
 
 func Test_Parseini(t *testing.T) {
-	playbooks, err := parseini("playbook.ini")
+	playbooks, err := parseini("./test/playbook.ini")
 	if err != nil {
 		t.Error("parseini error: ", err)
 	}
@@ -56,7 +56,7 @@ func Test_StringToSshconfig(t *testing.T) {
 }
 
 func Test_ParseHostfile(t *testing.T) {
-	sshconfigs, err := parseHostfile("host1")
+	sshconfigs, err := parseHostfile("./test/host1")
 	if err != nil {
 		t.Error("parseHostfile error: ", err)
 	}
