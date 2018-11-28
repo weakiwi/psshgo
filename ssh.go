@@ -23,6 +23,7 @@ func makeConnection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 		User:       sc.user,
 		Privatekey: pkey,
 		Host:       sc.address,
+        DialTimeoutSecond: 5,
 	}
 	sshclient = gosshtool.NewSSHClient(config2)
 	return sshclient, nil
@@ -32,8 +33,8 @@ func sshexecWithoutConnect(sshclient *gosshtool.SSHClient, command string, done 
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
 		waitgroup.Done()
-		log.Println("sshexec error is : ", err)
-		done <- fmt.Sprintf(stderr)
+        log.Println("sshexecWithoutConnect sshclient.Cmd error: ", err)
+        done <- fmt.Sprintf(stderr)
 		return
 	}
 	waitgroup.Done()
