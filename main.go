@@ -1,16 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"crypto/md5"
-	"fmt"
 	"github.com/urfave/cli"
 	"github.com/weakiwi/gosshtool"
-	"io"
-	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -88,20 +82,6 @@ var (
 	}
 )
 
-func md5File(srcfile string) {
-	file, err := os.Open(srcfile)
-	if err != nil {
-		panic(err)
-	}
-
-	h := md5.New()
-	_, err = io.Copy(h, file)
-	if err != nil {
-		return
-	}
-	log.Printf("%x  %s\n", h.Sum(nil), srcfile)
-}
-
 func pini(c *cli.Context) {
 	inifile := mustGetStringVar(c, "i")
 	playbooks, err := parseini(inifile)
@@ -115,9 +95,9 @@ func pini(c *cli.Context) {
 		os.Exit(1)
 	}
 	for j := range playbooks[0].servers {
-		tmp_conn, err := make_a_connection(&playbooks[0].servers[j])
+		tmp_conn, err := makeConnection(&playbooks[0].servers[j])
 		if err != nil {
-			log.Fatalf("make_a_connection error: %v", err)
+			log.Fatalf("makeConnection error: %v", err)
 			os.Exit(1)
 		}
 		sc_group = append(sc_group, tmp_conn)
@@ -136,7 +116,7 @@ func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go scpexec_without_connection(servers[i], srcfile, destfile, done)
+		go scpexecWithoutConnection(servers[i], srcfile, destfile, done)
 	}
 	md5File(srcfile)
 	waitgroup.Wait()
@@ -172,30 +152,13 @@ func pscp(c *cli.Context) {
 	}
 	return
 }
-func ComputeLine(path string) (num int) {
-	f, err := os.Open(path)
-	if nil != err {
-		log.Println(err)
-		return
-	}
-	defer f.Close()
-	r := bufio.NewReader(f)
-	for {
-		_, err := r.ReadString('\n')
-		if io.EOF == err || nil != err {
-			break
-		}
-		num += 1
-	}
-	return
-}
 
 func psshexec(servers []*gosshtool.SSHClient, command string) {
 	counter := len(servers)
 	done := make(chan string, counter)
 	for i := range servers {
 		waitgroup.Add(1)
-		go sshexec_without_connect(servers[i], command, done)
+		go sshexecWithoutConnect(servers[i], command, done)
 	}
 	waitgroup.Wait()
 	for v := range done {
@@ -229,79 +192,19 @@ func pssh(c *cli.Context) {
 		}
 	}
 }
-func make_a_connection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
-	pkey := os.Getenv("PKEY")
-	if pkey == "" {
-		pkey = "/root/.ssh/id_rsa"
-	}
-	key, err := ioutil.ReadFile(pkey)
-	if err != nil {
-		log.Fatalf("Unable to read private key: %v", err)
-		return nil, err
-	}
-	pkey = string(key)
-	config2 := &gosshtool.SSHClientConfig{
-		User:       sc.user,
-		Privatekey: pkey,
-		Host:       sc.address,
-	}
-	sshclient = gosshtool.NewSSHClient(config2)
-	return sshclient, nil
-}
-func sshexec_without_connect(sshclient *gosshtool.SSHClient, command string, done chan string) {
-	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
-	if err != nil {
-		waitgroup.Done()
-		log.Println("sshexec error is : ", err)
-		done <- fmt.Sprintf(stderr)
-		return
-	}
-	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sshclient.SSHClientConfig.Host, CLR_N, stdout)
-	return
-}
+
 func sshexec(sc *sshconfig, command string, done chan string) {
-	sshclient, err := make_a_connection(sc)
+	sshclient, err := makeConnection(sc)
 	if err != nil {
-		log.Fatalf("sshexec.make_a_connection error: %v", err)
+		log.Fatalf("sshexec.makeConnection error: %v", err)
 	}
-	sshexec_without_connect(sshclient, command, done)
+	sshexecWithoutConnect(sshclient, command, done)
 }
 
-func scpexec_without_connection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
-	f, err := os.Open(srcfile)
-	if err != nil {
-		return
-	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return
-	}
-	stdout, stderr, err := client.TransferData(destfile, data)
-	if err != nil {
-		log.Printf(stderr)
-	}
-	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
-	if err != nil {
-		waitgroup.Done()
-		done <- fmt.Sprintf(stderr)
-	}
-	waitgroup.Done()
-	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, client.SSHClientConfig.Host, CLR_N, stdout)
-	return
-}
 func scpexec(sc *sshconfig, srcfile string, destfile string, done chan string) {
-	sshclient, err := make_a_connection(sc)
+	sshclient, err := makeConnection(sc)
 	if err != nil {
-		log.Fatalf("sshexec.make_a_connection error: %v", err)
+		log.Fatalf("sshexec.makeConnection error: %v", err)
 	}
-	scpexec_without_connection(sshclient, srcfile, destfile, done)
-}
-
-func mustGetStringVar(c *cli.Context, key string) string {
-	v := strings.TrimSpace(c.String(key))
-	if v == "" {
-		log.Fatalf("%s must be provided", key)
-	}
-	return v
+	scpexecWithoutConnection(sshclient, srcfile, destfile, done)
 }
