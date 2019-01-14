@@ -20,29 +20,29 @@ func makeConnection(sc *sshconfig) (sshclient *gosshtool.SSHClient, err error) {
 	}
 	pkey = string(key)
 	config2 := &gosshtool.SSHClientConfig{
-		User:       sc.user,
-		Privatekey: pkey,
-		Host:       sc.address,
-        DialTimeoutSecond: 5,
+		User:              sc.user,
+		Privatekey:        pkey,
+		Host:              sc.address,
+		DialTimeoutSecond: 5,
 	}
 	sshclient = gosshtool.NewSSHClient(config2)
 	return sshclient, nil
 }
 
 func sshexecWithoutConnect(sshclient *gosshtool.SSHClient, command string, done chan string) {
+	defer waitgroup.Done()
 	stdout, stderr, _, err := sshclient.Cmd(command, nil, nil, 0)
 	if err != nil {
-		waitgroup.Done()
-        log.Println("sshexecWithoutConnect sshclient.Cmd error: ", err)
-        done <- fmt.Sprintf(stderr)
+		log.Println("sshexecWithoutConnect sshclient.Cmd error: ", err)
+		done <- fmt.Sprintf(stderr)
 		return
 	}
-	waitgroup.Done()
 	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, sshclient.SSHClientConfig.Host, CLR_N, stdout)
 	return
 }
 
 func scpexecWithoutConnection(client *gosshtool.SSHClient, srcfile string, destfile string, done chan string) {
+	defer waitgroup.Done()
 	f, err := os.Open(srcfile)
 	if err != nil {
 		return
@@ -58,10 +58,8 @@ func scpexecWithoutConnection(client *gosshtool.SSHClient, srcfile string, destf
 	}
 	stdout, stderr, _, err = client.Cmd("md5sum "+destfile, nil, nil, 0)
 	if err != nil {
-		waitgroup.Done()
 		done <- fmt.Sprintf(stderr)
 	}
-	waitgroup.Done()
 	done <- fmt.Sprintf("%s[%s]%s\n%s", CLR_R, client.SSHClientConfig.Host, CLR_N, stdout)
 	return
 }

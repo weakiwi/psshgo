@@ -121,9 +121,9 @@ func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 	md5File(srcfile)
 	waitgroup.Wait()
 	select {
-		case doneVar := <- done:
-			log.Println(doneVar)
-		default:
+	case doneVar := <-done:
+		log.Println(doneVar)
+	default:
 	}
 }
 func pscp(c *cli.Context) {
@@ -144,9 +144,9 @@ func pscp(c *cli.Context) {
 	md5File(srcfile)
 	waitgroup.Wait()
 	select {
-		case doneVar := <- done:
-			log.Println(doneVar)
-		default:
+	case doneVar := <-done:
+		log.Println(doneVar)
+	default:
 	}
 	return
 }
