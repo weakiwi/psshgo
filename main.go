@@ -125,12 +125,6 @@ func pscpexec(servers []*gosshtool.SSHClient, srcfile string, destfile string) {
 			log.Println(doneVar)
 		default:
 	}
-	//for v := range done {
-	//	log.Println(v)
-	//	if len(done) <= 0 {
-	//		close(done)
-	//	}
-	//}
 }
 func pscp(c *cli.Context) {
 	hostfile := mustGetStringVar(c, "hf")
@@ -149,11 +143,10 @@ func pscp(c *cli.Context) {
 	}
 	md5File(srcfile)
 	waitgroup.Wait()
-	for v := range done {
-		log.Println(v)
-		if len(done) <= 0 { // 如果现有数据量为0，跳出循环
-			close(done)
-		}
+	select {
+		case doneVar := <- done:
+			log.Println(doneVar)
+		default:
 	}
 	return
 }
